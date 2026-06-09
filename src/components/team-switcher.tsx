@@ -1,15 +1,10 @@
-"use client"
-
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar"
 import logo from "@/assets/bipah.svg"
-import { cn } from "@/lib/utils"
 export function TeamSwitcher() {
-    const { state } = useSidebar()
 
   return (
     <SidebarMenu>
@@ -19,7 +14,7 @@ export function TeamSwitcher() {
             <img
               src={logo}
               alt="Bipah"
-              className={cn("h-full w-full object-cover", state === "collapsed" && "object-contain")}
+              className="h-full w-full object-contain"
             />
           </div>
 

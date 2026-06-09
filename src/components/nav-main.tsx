@@ -28,17 +28,12 @@ export function NavMain({
         {items.map((item) => (
           <SidebarMenuItem key={item.view}>
             <SidebarMenuButton
-             className="
-    transition-all duration-200
-    data-[active=true]:bg-primary
-    data-[active=true]:text-primary-foreground
-    data-[active=true]:shadow-md
-  "
+              className="transition-all duration-200 data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:shadow-md"
               isActive={currentView === item.view}
               onClick={() => setView(item.view as View)}
               tooltip={item.title}
             >
-              {item.  icon && <item.icon className="size-4" />}
+              {item.icon && <item.icon className="size-4" />}
               <span>{item.title}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
