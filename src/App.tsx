@@ -1,21 +1,53 @@
-import { Button } from "@/components/ui/button"
+import { AppSidebar } from "@/components/app-sidebar"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { useNavigationStore } from "./stores/navigation"
+import { lazy, Suspense } from "react"
+import { Spinner } from "./components/ui/spinner"
 
-export function App() {
+const Pdv = lazy(() => import("@/components/pdvUi/pdv"))
+
+export default function App() {
+    const { currentView } = useNavigationStore()
+  
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+           
+          </div>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">
+          {currentView === "pdv" && "Frente de Caixa"}
+          {currentView === "produtos" && "Produtos"}
+          {currentView === "financeiro" && "Financeiro"}
+          {currentView === "configuracoes" && "Configurações"}
+        </h1>
       </div>
-    </div>
+        </header>
+        {/* <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="aspect-video rounded-xl bg-muted/50" />
+            <div className="aspect-video rounded-xl bg-muted/50" />
+          </div>
+          <div className="min-h-screen flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        </div> */}
+        <Suspense fallback={<Spinner className="size-32 text-amber-700"/>}>
+          {currentView === "pdv" && <Pdv />}
+        </Suspense>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
-
-export default App
