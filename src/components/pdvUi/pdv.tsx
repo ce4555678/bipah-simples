@@ -1,122 +1,418 @@
+"use client"
+
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Barcode, Image as ImageIcon, ShoppingCart } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Search, CreditCard, AlertCircle, Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type { CartItem, Product } from "./types"
+import { PdvHeader } from "./pdv-header"
+import { PdvSidebar } from "./pdv-sidebar"
+import { PdvTable } from "./pdv-table"
+import { PdvFooter } from "./pdv-footer"
+
+const MOCK_PRODUCTS: Product[] = [
+  {
+    id: "1",
+    code: "7891234567890",
+    name: "Coca-Cola 2L",
+    price: 9.99,
+    stock: 48,
+  },
+  {
+    id: "2",
+    code: "7890000001234",
+    name: "Arroz Tipo 1 5kg",
+    price: 24.9,
+    stock: 12,
+  },
+  {
+    id: "3",
+    code: "7890000005678",
+    name: "Feijão Carioca 1kg",
+    price: 8.5,
+    stock: 30,
+  },
+  {
+    id: "4",
+    code: "7890000009012",
+    name: "Óleo de Soja 900ml",
+    price: 7.49,
+    stock: 20,
+  },
+  {
+    id: "5",
+    code: "1111111111111",
+    name: "Sabão em Pó 1kg",
+    price: 13.9,
+    stock: 15,
+  },
+]
+
+const fmt = (value: number) =>
+  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
 export default function PDVPage() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [code, setCode] = useState("")
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedRow, setSelectedRow] = useState<number | null>(null)
+  const [received, setReceived] = useState("")
+  const [showFinish, setShowFinish] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [notification, setNotification] = useState<{
+    msg: string
+    type: "ok" | "err"
+  } | null>(null)
+  const [lastAdded, setLastAdded] = useState<CartItem | null>(null)
+
+  const notify = useCallback((msg: string, type: "ok" | "err" = "ok") => {
+    setNotification({ msg, type })
+    setTimeout(() => setNotification(null), 2200)
+  }, [])
+
+  const addProduct = useCallback(
+    (product: Product, qty = 1) => {
+      setCart((prev) => {
+        const idx = prev.findIndex((item) => item.id === product.id)
+        if (idx >= 0) {
+          const updated = [...prev]
+          updated[idx] = { ...updated[idx], qty: updated[idx].qty + qty }
+          setLastAdded(updated[idx])
+          setSelectedRow(idx)
+          return updated
+        }
+
+        const newItem: CartItem = { ...product, qty, discount: 0 }
+        setLastAdded(newItem)
+        setSelectedRow(prev.length)
+        return [...prev, newItem]
+      })
+      notify(`${product.name} adicionado`)
+    },
+    [notify]
+  )
+
+  const handleCodeSubmit = useCallback(() => {
+    if (!code.trim()) return
+
+    const found = MOCK_PRODUCTS.find((product) => product.code === code.trim())
+    if (found) {
+      addProduct(found)
+    } else {
+      notify("Produto não encontrado", "err")
+    }
+    setCode("")
+  }, [code, addProduct, notify])
+
+  const removeItem = useCallback((idx: number) => {
+    setCart((prev) => {
+      const updated = prev.filter((_, i) => i !== idx)
+      setSelectedRow(
+        updated.length > 0 ? Math.min(idx, updated.length - 1) : null
+      )
+      return updated
+    })
+  }, [])
+
+  const changeQty = useCallback((idx: number, delta: number) => {
+    setCart((prev) => {
+      const updated = [...prev]
+      const newQty = updated[idx].qty + delta
+      if (newQty <= 0) {
+        const next = prev.filter((_, i) => i !== idx)
+        setSelectedRow(next.length > 0 ? Math.min(idx, next.length - 1) : null)
+        return next
+      }
+      updated[idx] = { ...updated[idx], qty: newQty }
+      setLastAdded(updated[idx])
+      return updated
+    })
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+
+      if (e.key === "F2") {
+        e.preventDefault()
+        setShowSearch(true)
+        return
+      }
+
+      if (e.key === "F5") {
+        e.preventDefault()
+        if (cart.length > 0) setShowFinish(true)
+        return
+      }
+
+      if (e.key === "Escape") {
+        if (!showFinish && !showSearch) {
+          e.preventDefault()
+          inputRef.current?.focus()
+        }
+        return
+      }
+
+      if (tag === "INPUT" || tag === "TEXTAREA") return
+
+      if (e.key === "F3" && selectedRow !== null) {
+        e.preventDefault()
+        changeQty(selectedRow, 1)
+        return
+      }
+
+      if (e.key === "F4" && selectedRow !== null) {
+        e.preventDefault()
+        changeQty(selectedRow, -1)
+        return
+      }
+
+      if (e.key === "Delete" && selectedRow !== null) {
+        e.preventDefault()
+        removeItem(selectedRow)
+        return
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        setSelectedRow((current) =>
+          current === null ? 0 : Math.min(current + 1, cart.length - 1)
+        )
+        return
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault()
+        setSelectedRow((current) =>
+          current === null ? 0 : Math.max(current - 1, 0)
+        )
+        return
+      }
+    }
+
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [cart, selectedRow, showFinish, showSearch, changeQty, removeItem])
+
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0)
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0)
+  const receivedNum = parseFloat(received.replace(",", ".")) || 0
+  const change = receivedNum - subtotal
+
+  const filteredProducts = useMemo(
+    () =>
+      MOCK_PRODUCTS.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.code.includes(searchQuery)
+      ),
+    [searchQuery]
+  )
+
+  useEffect(() => {
+    if (showSearch) {
+      searchInputRef.current?.focus()
+    }
+  }, [showSearch])
+
+  useEffect(() => {
+    if (!showSearch && !showFinish) {
+      inputRef.current?.focus()
+    }
+  }, [showSearch, showFinish])
+
+  const featured = lastAdded
+
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100dvh-4rem)] gap-4 p-4 lg:p-6 bg-muted/20 overflow-hidden">
-      
-      {/* LADO ESQUERDO (Visível apenas em desktop) */}
-      <aside className="hidden lg:flex w-80 flex-col gap-4 shrink-0">
-        <Card className="flex flex-col overflow-hidden border-none shadow-sm h-64">
-          <div className="flex flex-1 items-center justify-center bg-muted/50">
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <ImageIcon className="h-10 w-10 opacity-50" />
-              <span className="text-sm font-medium">Sem imagem</span>
+    <TooltipProvider delayDuration={300}>
+      <div className="relative flex h-[calc(100dvh-4rem)] flex-col overflow-hidden bg-background">
+        {notification && (
+          <div
+            className={cn(
+              "absolute top-4 right-4 z-50 flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium shadow-lg transition-all",
+              notification.type === "ok"
+                ? "bg-emerald-500 text-white"
+                : "text-destructive-foreground bg-destructive"
+            )}
+          >
+            {notification.type === "ok" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
+            {notification.msg}
+          </div>
+        )}
+
+        <PdvHeader
+          inputRef={inputRef}
+          code={code}
+          setCode={setCode}
+          onSubmit={handleCodeSubmit}
+          onOpenSearch={() => setShowSearch(true)}
+          onOpenFinish={() => setShowFinish(true)}
+          finishDisabled={cart.length === 0}
+        />
+
+        <div className="flex flex-1 gap-0 overflow-hidden">
+          <PdvSidebar
+            featured={featured}
+            totalItems={totalItems}
+            cartLength={cart.length}
+            subtotal={subtotal}
+          />
+
+          <main className="flex flex-1 flex-col overflow-hidden">
+            <PdvTable
+              cart={cart}
+              selectedRow={selectedRow}
+              onSelectRow={setSelectedRow}
+              changeQty={changeQty}
+              removeItem={removeItem}
+            />
+
+            <PdvFooter
+              received={received}
+              setReceived={setReceived}
+              subtotal={subtotal}
+              change={change}
+              cartLength={cart.length}
+            />
+          </main>
+        </div>
+      </div>
+
+      <Dialog open={showSearch} onOpenChange={setShowSearch}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Buscar Produto
+            </DialogTitle>
+          </DialogHeader>
+
+          <Input
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Nome ou código do produto..."
+            className="mt-1"
+          />
+
+          <div className="mt-2 h-56">
+            <div className="space-y-1 overflow-y-auto pr-2">
+              {filteredProducts.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  Nenhum produto encontrado
+                </p>
+              ) : (
+                filteredProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition hover:bg-muted"
+                    onClick={() => {
+                      addProduct(product)
+                      setShowSearch(false)
+                      setSearchQuery("")
+                      inputRef.current?.focus()
+                    }}
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {product.code}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">
+                        {fmt(product.price)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {product.stock} em estoque
+                      </p>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
-          <CardContent className="p-4 bg-card">
-            <h3 className="font-semibold truncate">Produto Exemplo</h3>
-            <p className="text-sm text-muted-foreground">Cód: 789123456789</p>
-          </CardContent>
-        </Card>
+        </DialogContent>
+      </Dialog>
 
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4">
-            <div className="text-sm text-muted-foreground">Valor Unitário</div>
-            <div className="text-right text-2xl font-bold">R$ 0,00</div>
-          </CardContent>
-        </Card>
+      <Dialog open={showFinish} onOpenChange={setShowFinish}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Finalizar Venda
+            </DialogTitle>
+          </DialogHeader>
 
-        <Card className="border-none shadow-sm bg-primary/5">
-          <CardContent className="p-4">
-            <div className="text-sm text-primary/80">Total do Item</div>
-            <div className="text-right text-3xl font-bold text-primary">R$ 0,00</div>
-          </CardContent>
-        </Card>
-      </aside>
+          <div className="space-y-3 rounded-xl bg-muted/50 p-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Total de itens</span>
+              <span className="font-medium">{totalItems}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Recebido</span>
+              <span className="font-medium">
+                {receivedNum > 0 ? fmt(receivedNum) : "—"}
+              </span>
+            </div>
+            {receivedNum > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Troco</span>
+                <span
+                  className={cn(
+                    "font-medium",
+                    change < 0 ? "text-destructive" : "text-emerald-600"
+                  )}
+                >
+                  {fmt(Math.max(change, 0))}
+                </span>
+              </div>
+            )}
+            <Separator />
+            <div className="flex justify-between font-bold">
+              <span>Total</span>
+              <span className="text-lg text-primary">{fmt(subtotal)}</span>
+            </div>
+          </div>
 
-      {/* CENTRO */}
-      <main className="flex flex-1 flex-col gap-4 overflow-hidden">
-        
-        {/* Input de Código */}
-        <div className="flex items-center gap-2 bg-card p-2 rounded-xl shadow-sm border">
-          <Barcode className="h-6 w-6 ml-2 text-primary" />
-          <Input
-            autoFocus
-            placeholder="Passe o leitor ou digite o código..."
-            className="h-12 border-0 text-lg shadow-none focus-visible:ring-0"
-          />
-        </div>
-
-        {/* Lista de Produtos (Scroll responsivo) */}
-        <Card className="flex-1 overflow-hidden border-none shadow-sm">
-          <CardHeader className="py-3 border-b flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Lista de Produtos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 h-full">
-            <ScrollArea className="h-full w-full">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 sticky top-0 z-10">
-                  <tr className="text-muted-foreground">
-                    <th className="p-3 text-left">Item</th>
-                    <th className="p-3 text-left">Produto</th>
-                    <th className="p-3 text-right">Qtde</th>
-                    <th className="p-3 text-right">Unit</th>
-                    <th className="p-3 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.from({ length: 15 }).map((_, index) => (
-                    <tr key={index} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-3 text-muted-foreground">{index + 1}</td>
-                      <td className="p-3 font-medium">Produto Exemplo</td>
-                      <td className="p-3 text-right">1</td>
-                      <td className="p-3 text-right">10,00</td>
-                      <td className="p-3 text-right font-bold">10,00</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        {/* Totais (Grid responsivo) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 shrink-0">
-          <Card className="border-none shadow-sm">
-            <CardContent className="p-3">
-              <div className="text-xs text-muted-foreground">Recebido</div>
-              <div className="text-xl font-bold">0,00</div>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-sm">
-            <CardContent className="p-3">
-              <div className="text-xs text-muted-foreground">Troco</div>
-              <div className="text-xl font-bold">0,00</div>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-md bg-primary text-primary-foreground col-span-2 md:col-span-1">
-            <CardContent className="p-3">
-              <div className="text-xs opacity-80">Subtotal</div>
-              <div className="text-3xl font-bold">0,00</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Atalhos (Escondidos em telas muito pequenas para poupar espaço) */}
-        <div className="hidden md:flex flex-wrap gap-4 text-xs text-muted-foreground pb-2">
-          {["F2 Buscar", "F3 Qtd", "F4 Desc", "F5 Finalizar", "F8 Abrir Caixa", "ESC Sair"].map((item) => (
-            <span key={item} className="flex items-center gap-1 bg-muted px-2 py-1 rounded border">
-              {item}
-            </span>
-          ))}
-        </div>
-      </main>
-    </div>
+          <DialogFooter className="mt-2 gap-2">
+            <Button variant="outline" onClick={() => setShowFinish(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 gap-2"
+              onClick={() => {
+                setCart([])
+                setReceived("")
+                setSelectedRow(null)
+                setLastAdded(null)
+                setShowFinish(false)
+                notify("Venda finalizada com sucesso!")
+                inputRef.current?.focus()
+              }}
+            >
+              <Check className="h-4 w-4" />
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
   )
 }

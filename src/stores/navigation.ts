@@ -1,22 +1,17 @@
 import { create } from "zustand"
 
-export type View =
-  | "pdv"
-  | "produtos"
-  | "financeiro"
-  | "configuracoes"
+export type View = "pdv" | "produtos" | "financeiro" | "configuracoes"
 
 interface NavigationStore {
   currentView: View
   setView: (view: View) => void
 }
 
-export const useNavigationStore =
-  create<NavigationStore>((set) => ({
-    currentView: "pdv",
+export const useNavigationStore = create<NavigationStore>((set) => ({
+  currentView: "pdv",
 
-    setView: (view) =>
-      set({
-        currentView: view,
-      }),
-  }))
+  setView: (view) =>
+    set({
+      currentView: view,
+    }),
+}))

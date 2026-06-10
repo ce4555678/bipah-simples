@@ -10,7 +10,12 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { DollarSignIcon, PackageIcon, SettingsIcon, ShoppingCartIcon } from "lucide-react"
+import {
+  DollarSignIcon,
+  PackageIcon,
+  SettingsIcon,
+  ShoppingCartIcon,
+} from "lucide-react"
 
 // This is sample data.
 const data = {
@@ -42,12 +47,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher  />
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
- 
+
       <SidebarRail />
     </Sidebar>
   )

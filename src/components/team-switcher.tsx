@@ -5,7 +5,6 @@ import {
 } from "@/components/ui/sidebar"
 import logo from "@/assets/bipah.svg"
 export function TeamSwitcher() {
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>

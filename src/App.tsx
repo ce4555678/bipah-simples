@@ -7,17 +7,19 @@ import {
 } from "@/components/ui/sidebar"
 import { useNavigationStore } from "./stores/navigation"
 import { lazy, Suspense } from "react"
-import { Spinner } from "./components/ui/spinner"
+import PageLoading from "./components/loading"
 import { ThemeToggle } from "./components/theme-toggle"
 
 const Pdv = lazy(() => import("@/components/pdvUi/pdv"))
 const Produtos = lazy(() => import("@/components/produtosUi/produtos"))
 const Financeiro = lazy(() => import("@/components/financeiroUi/financeiro"))
-const Configuracoes = lazy(() => import("@/components/configuracoesUi/configuracoes"))
+const Configuracoes = lazy(
+  () => import("@/components/configuracoesUi/configuracoes")
+)
 
 export default function App() {
-    const { currentView } = useNavigationStore()
-  
+  const { currentView } = useNavigationStore()
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -29,19 +31,18 @@ export default function App() {
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
-           
           </div>
-      <div className="flex items-center justify-between w-full">
-        <h1 className="text-xl font-semibold tracking-tight">
-          {currentView === "pdv" && "Frente de Caixa"}
-          {currentView === "produtos" && "Produtos"}
-          {currentView === "financeiro" && "Financeiro"}
-          {currentView === "configuracoes" && "Configurações"}
-        </h1>
-      </div>
-      <span className="pr-4">
-        <ThemeToggle/>
-      </span>
+          <div className="flex w-full items-center justify-between">
+            <h1 className="text-xl font-semibold tracking-tight">
+              {currentView === "pdv" && "Frente de Caixa"}
+              {currentView === "produtos" && "Produtos"}
+              {currentView === "financeiro" && "Financeiro"}
+              {currentView === "configuracoes" && "Configurações"}
+            </h1>
+          </div>
+          <span className="pr-4">
+            <ThemeToggle />
+          </span>
         </header>
         {/* <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
@@ -51,7 +52,7 @@ export default function App() {
           </div>
           <div className="min-h-screen flex-1 rounded-xl bg-muted/50 md:min-h-min" />
         </div> */}
-        <Suspense fallback={<Spinner className="size-32 text-amber-700"/>}>
+        <Suspense fallback={<PageLoading />}>
           {currentView === "pdv" && <Pdv />}
           {currentView === "produtos" && <Produtos />}
           {currentView === "financeiro" && <Financeiro />}
