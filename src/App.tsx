@@ -6,9 +6,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { useNavigationStore } from "./stores/navigation"
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, useEffect, useEffectEvent } from "react"
 import PageLoading from "./components/loading"
 import { ThemeToggle } from "./components/theme-toggle"
+import Database from "@tauri-apps/plugin-sql"
 
 const Pdv = lazy(() => import("@/components/pdvUi/pdv"))
 const Produtos = lazy(() => import("@/components/produtosUi/produtos"))
@@ -16,10 +17,28 @@ const Financeiro = lazy(() => import("@/components/financeiroUi/financeiro"))
 const Configuracoes = lazy(
   () => import("@/components/configuracoesUi/configuracoes")
 )
+const Clientes = lazy(() => import("@/components/clientesUi/clientes"))
 
 export default function App() {
   const { currentView } = useNavigationStore()
 
+  const testSql = useEffectEvent(async () => {
+    const db = await Database.load("sqlite:test.db")
+
+    try {
+      await db.execute(`
+    CREATE VIRTUAL TABLE teste_fts
+    USING fts5(texto)
+  `)
+
+      console.log("FTS5 disponível")
+    } catch (e) {
+      console.log("FTS5 NÃO disponível", e)
+    }
+  })
+  useEffect(() => {
+    testSql()
+  }, [])
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -37,6 +56,7 @@ export default function App() {
               {currentView === "pdv" && "Frente de Caixa"}
               {currentView === "produtos" && "Produtos"}
               {currentView === "financeiro" && "Financeiro"}
+              {currentView === "clientes" && "Clientes"}
               {currentView === "configuracoes" && "Configurações"}
             </h1>
           </div>
@@ -55,6 +75,7 @@ export default function App() {
         <Suspense fallback={<PageLoading />}>
           {currentView === "pdv" && <Pdv />}
           {currentView === "produtos" && <Produtos />}
+          {currentView === "clientes" && <Clientes />}
           {currentView === "financeiro" && <Financeiro />}
           {currentView === "configuracoes" && <Configuracoes />}
         </Suspense>

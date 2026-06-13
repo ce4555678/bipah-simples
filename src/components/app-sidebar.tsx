@@ -15,6 +15,7 @@ import {
   PackageIcon,
   SettingsIcon,
   ShoppingCartIcon,
+  UsersIcon,
 } from "lucide-react"
 
 // This is sample data.
@@ -29,6 +30,11 @@ const data = {
       title: "Produtos",
       view: "produtos",
       icon: PackageIcon,
+      },
+      {
+        title: "Clientes",
+        view: "clientes",
+        icon: UsersIcon,
     },
     {
       title: "Financeiro",

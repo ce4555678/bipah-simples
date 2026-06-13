@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-export type View = "pdv" | "produtos" | "financeiro" | "configuracoes"
+export type View = "pdv" | "produtos" | "clientes" | "financeiro" | "configuracoes"
 
 interface NavigationStore {
   currentView: View
