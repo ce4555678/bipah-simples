@@ -1,88 +1,130 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useSearchStore } from "@/stores/search"
+import fetchProdutos from "@/utils/fetchProdutos"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { Pencil, Trash2 } from "lucide-react"
-import type { Product } from "./types"
-
-interface ProdutosTableProps {
-  products: Product[]
-  onEditProduct: (product: Product) => void
-  onDeleteProduct: (id: string) => void
-}
-
+import { useEffect, useMemo } from "react"
+import { useInView } from "react-intersection-observer"
+import { Spinner } from "../ui/spinner"
+import Decimal from "decimal.js"
 const formatCurrency = (value: number) =>
-  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+  value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  })
 
-export function ProdutosTable({
-  products,
-  onEditProduct,
-  onDeleteProduct,
-}: ProdutosTableProps) {
+export function ProdutosTable() {
+  const search = useSearchStore()
+
+  const { ref, inView } = useInView({
+    threshold: 0,
+    rootMargin: "300px",
+  })
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ["produtos", search.input],
+    queryFn: ({ pageParam }) =>
+      fetchProdutos({ pageParam, searchTerm: search.input }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+  })
+
+  useEffect(() => {
+    if (!inView || !hasNextPage || isFetchingNextPage) return
+    fetchNextPage()
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const produtos = useMemo(() => {
+    const all = data?.pages.flatMap((page) => page.produtos) ?? []
+    return Array.from(new Map(all.map((p) => [p.id, p])).values())
+  }, [data])
+
+  if (status === "pending") {
+    return (
+      <div className="flex h-full items-center justify-center">
+        Carregando produtos...
+      </div>
+    )
+  }
+
+  if (status === "error") {
+    return <div className="p-4 text-destructive">{error.message}</div>
+  }
+
   return (
-    <div className="flex-1 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-border text-left text-sm">
-          <thead className="bg-muted/50 text-xs tracking-[0.16em] text-muted-foreground uppercase">
-            <tr>
-              <th className="px-6 py-3">Código</th>
-              <th className="px-6 py-3">Nome</th>
-              <th className="px-6 py-3 text-right">Preço</th>
-              <th className="px-6 py-3 text-right">Estoque</th>
-              <th className="px-6 py-3 text-right">Ações</th>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border bg-card">
+      <ScrollArea className="min-h-0 flex-1">
+        <table className="w-full table-fixed">
+          <thead className="sticky top-0 z-10 border-b bg-white">
+            <tr className="text-xs text-muted-foreground uppercase">
+              <th className="px-4 py-3 text-left">SKU</th>
+              <th className="px-4 py-3 text-left">Nome / Descrição</th>
+              <th className="px-4 py-3 text-right">Preço</th>
+              <th className="px-4 py-3 text-right">Vendas</th>
+              <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
-            {products.length === 0 ? (
+          <tbody>
+            {produtos.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
-                  className="px-6 py-16 text-center text-sm text-muted-foreground"
+                  colSpan={4}
+                  className="h-40 text-center text-muted-foreground"
                 >
-                  Nenhum produto encontrado.
+                  Nenhum produto encontrado
                 </td>
               </tr>
-            ) : (
-              products.map((product) => (
-                <tr
-                  key={product.id}
-                  className="transition-colors hover:bg-muted/50"
-                >
-                  <td className="px-6 py-4 font-medium text-foreground">
-                    {product.code}
+            )}
+
+            {produtos.map((produto) => {
+              const preco = new Decimal(produto.precoVenda || 0)
+              const vendas = new Decimal(produto.totalVendido || 0)
+              return (
+                <tr key={produto.id} className="border-b hover:bg-muted/40">
+                  <td className="px-4 py-3 font-medium">{produto.sku}</td>
+                  <td className="truncate px-4 py-3">{produto.description}</td>
+                  <td className="px-4 py-3 text-right text-green-800 tabular-nums">
+                    {formatCurrency(preco.div(100).toNumber())}
                   </td>
-                  <td className="px-6 py-4">{product.name}</td>
-                  <td className="px-6 py-4 text-right text-foreground tabular-nums">
-                    {formatCurrency(product.price)}
+                  <td className="px-4 py-3 text-right text-lime-800 tabular-nums">
+                    {formatCurrency(vendas.div(100).toNumber())}
                   </td>
-                  <td className="px-6 py-4 text-right text-muted-foreground">
-                    {product.stock}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="inline-flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => onEditProduct(product)}
-                      >
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <Button size="icon" variant="outline">
                         <Pencil className="h-4 w-4" />
-                        Editar
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => onDeleteProduct(product.id)}
-                      >
+                      <Button size="icon" variant="destructive">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
+              )
+            })}
           </tbody>
         </table>
-      </div>
+
+        {/* INFINITE SCROLL */}
+        {hasNextPage && (
+          <div ref={ref} className="flex h-20 items-center justify-center">
+            {isFetchingNextPage && (
+              <span className="flex items-center gap-2">
+                <Spinner className="size-5 text-amber-600" />
+                Carregando...
+              </span>
+            )}
+          </div>
+        )}
+      </ScrollArea>
     </div>
   )
 }

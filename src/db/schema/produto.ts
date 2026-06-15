@@ -1,6 +1,6 @@
-import { relations } from "drizzle-orm";
+import { relations } from "drizzle-orm"
 import { int, sqliteTable, text, blob } from "drizzle-orm/sqlite-core"
-import { ItemVendaTable } from "./item-venda";
+import { ItemVendaTable } from "./item-venda"
 
 export const produtosTable = sqliteTable("produtos_table", {
   id: int().primaryKey({ autoIncrement: true }),
@@ -13,10 +13,11 @@ export const produtosTable = sqliteTable("produtos_table", {
   margemLucro: int("margem_lucro").default(0),
   active: int({
     mode: "boolean",
-  }).default(true)
+  }).default(true),
 })
 
 export const produtosRelations = relations(produtosTable, ({ many }) => ({
-    itensVendas: many(ItemVendaTable)
-}));
+  itensVendas: many(ItemVendaTable),
+}))
 
+export type Produto = typeof produtosTable.$inferSelect

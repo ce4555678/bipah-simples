@@ -9,12 +9,16 @@ export const vendasTable = sqliteTable(
   "vendas_table",
   {
     id: int().primaryKey({ autoIncrement: true }),
-    metodoPagamento: text("metodo_pagamento").$type<MetodoPagamento>().notNull(),
+    metodoPagamento: text("metodo_pagamento")
+      .$type<MetodoPagamento>()
+      .notNull(),
     desconto: int(),
     troco: int(),
     total: int().default(0).notNull(),
     status: text().$type<"pago" | "cancelada">().notNull().default("pago"),
-    clienteId: int("cliente_id").references(() => clientesTable.id, { onDelete: "set null"}),
+    clienteId: int("cliente_id").references(() => clientesTable.id, {
+      onDelete: "set null",
+    }),
     createdAt: int("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -28,10 +32,10 @@ export const vendasTable = sqliteTable(
   ]
 )
 
-export const vendasRelations = relations(vendasTable, ({ one,many }) => ({
-	cliente: one(clientesTable, {
-		fields: [vendasTable.clienteId],
-		references: [clientesTable.id],
-	}),
-    itensVenda: many(ItemVendaTable)
-}));
+export const vendasRelations = relations(vendasTable, ({ one, many }) => ({
+  cliente: one(clientesTable, {
+    fields: [vendasTable.clienteId],
+    references: [clientesTable.id],
+  }),
+  itensVenda: many(ItemVendaTable),
+}))

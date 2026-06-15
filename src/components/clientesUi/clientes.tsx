@@ -7,8 +7,20 @@ import { ClientesDialog } from "./clientes-dialog"
 import type { Cliente } from "./types"
 
 const INITIAL_CLIENTS: Cliente[] = [
-  { id: "1", document: "000.000.000-00", name: "João Silva", email: "joao@example.com", phone: "(11) 99999-0000" },
-  { id: "2", document: "111.111.111-11", name: "Maria Souza", email: "maria@example.com", phone: "(21) 98888-1111" },
+  {
+    id: "1",
+    document: "000.000.000-00",
+    name: "João Silva",
+    email: "joao@example.com",
+    phone: "(11) 99999-0000",
+  },
+  {
+    id: "2",
+    document: "111.111.111-11",
+    name: "Maria Souza",
+    email: "maria@example.com",
+    phone: "(21) 98888-1111",
+  },
 ]
 
 export default function ClientesPage() {
@@ -65,14 +77,26 @@ export default function ClientesPage() {
       setClients((current) =>
         current.map((c) =>
           c.id === editing.id
-            ? { ...c, document: document.trim(), name: name.trim(), email: email.trim(), phone: phone.trim() }
+            ? {
+                ...c,
+                document: document.trim(),
+                name: name.trim(),
+                email: email.trim(),
+                phone: phone.trim(),
+              }
             : c
         )
       )
     } else {
       setClients((current) => [
         ...current,
-        { id: `${Date.now()}`, document: document.trim(), name: name.trim(), email: email.trim(), phone: phone.trim() },
+        {
+          id: `${Date.now()}`,
+          document: document.trim(),
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+        },
       ])
     }
 
@@ -85,8 +109,16 @@ export default function ClientesPage() {
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col gap-6 bg-muted/20 p-6">
-      <ClientesToolbar search={search} onSearchChange={setSearch} onNewClient={openNewClient} />
-      <ClientesTable clients={filteredClients} onEditClient={openEditClient} onDeleteClient={deleteClient} />
+      <ClientesToolbar
+        search={search}
+        onSearchChange={setSearch}
+        onNewClient={openNewClient}
+      />
+      <ClientesTable
+        clients={filteredClients}
+        onEditClient={openEditClient}
+        onDeleteClient={deleteClient}
+      />
       <ClientesDialog
         open={dialogOpen}
         editing={editing}

@@ -30,11 +30,11 @@ const data = {
       title: "Produtos",
       view: "produtos",
       icon: PackageIcon,
-      },
-      {
-        title: "Clientes",
-        view: "clientes",
-        icon: UsersIcon,
+    },
+    {
+      title: "Clientes",
+      view: "clientes",
+      icon: UsersIcon,
     },
     {
       title: "Financeiro",

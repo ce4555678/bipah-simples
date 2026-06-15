@@ -40,7 +40,10 @@ export function ClientesTable({
               </tr>
             ) : (
               clients.map((client) => (
-                <tr key={client.id} className="transition-colors hover:bg-muted/50">
+                <tr
+                  key={client.id}
+                  className="transition-colors hover:bg-muted/50"
+                >
                   <td className="px-6 py-4 font-medium text-foreground">
                     {client.document}
                   </td>

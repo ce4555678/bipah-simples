@@ -6,8 +6,7 @@ import { defineConfig } from "vite"
 const host = process.env.TAURI_DEV_HOST
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  // prevent vite from obscuring rust errors
+  plugins: [react(), tailwindcss()], // prevent vite from obscuring rust errors
   clearScreen: false,
   server: {
     // make sure this port matches the devUrl port in tauri.conf.json file
@@ -40,6 +39,7 @@ export default defineConfig({
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -44,7 +44,9 @@ export function ClientesDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar cliente" : "Novo cliente"}</DialogTitle>
+          <DialogTitle>
+            {editing ? "Editar cliente" : "Novo cliente"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4 pt-2">
