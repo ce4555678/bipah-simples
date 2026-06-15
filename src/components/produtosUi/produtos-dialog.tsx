@@ -9,11 +9,10 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Product } from "./types"
 
 interface ProdutosDialogProps {
   open: boolean
-  editing: Product | null
+  // editing: Product | null
   code: string
   name: string
   price: string
@@ -28,7 +27,7 @@ interface ProdutosDialogProps {
 
 export function ProdutosDialog({
   open,
-  editing,
+  // editing,
   code,
   name,
   price,
@@ -45,7 +44,7 @@ export function ProdutosDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {editing ? "Editar produto" : "Novo produto"}
+            {/* {editing ? "Editar produto" : "Novo produto"} */}
           </DialogTitle>
         </DialogHeader>
 
@@ -78,7 +77,7 @@ export function ProdutosDialog({
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={onSave}>{editing ? "Salvar" : "Adicionar"}</Button>
+          {/* <Button onClick={onSave}>{editing ? "Salvar" : "Adicionar"}</Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

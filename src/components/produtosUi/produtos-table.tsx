@@ -8,6 +8,9 @@ import { useEffect, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import { Spinner } from "../ui/spinner"
 import Decimal from "decimal.js"
+import { useEditProdutoStore } from "@/stores/edit-produto"
+import { useNavigationStore } from "@/stores/navigation"
+import type { ProdutoInsert } from "@/db/schema/produto"
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", {
     style: "currency",
@@ -16,6 +19,13 @@ const formatCurrency = (value: number) =>
 
 export function ProdutosTable() {
   const search = useSearchStore()
+    const { setView } = useNavigationStore()
+    const {setEditProduto } = useEditProdutoStore()
+   
+    function editProduto (produto: ProdutoInsert) {
+      setEditProduto(produto)
+      setView("edit-produto")
+    }
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -63,7 +73,7 @@ export function ProdutosTable() {
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border bg-card">
       <ScrollArea className="min-h-0 flex-1">
         <table className="w-full table-fixed">
-          <thead className="sticky top-0 z-10 border-b bg-white">
+          <thead className="sticky top-0 z-10 border-b bg-white dark:bg-background">
             <tr className="text-xs text-muted-foreground uppercase">
               <th className="px-4 py-3 text-left">SKU</th>
               <th className="px-4 py-3 text-left">Nome / Descrição</th>
@@ -91,15 +101,15 @@ export function ProdutosTable() {
                 <tr key={produto.id} className="border-b hover:bg-muted/40">
                   <td className="px-4 py-3 font-medium">{produto.sku}</td>
                   <td className="truncate px-4 py-3">{produto.description}</td>
-                  <td className="px-4 py-3 text-right text-green-800 tabular-nums">
+                  <td className="px-4 py-3 text-right dark:text-green-400 text-green-800 tabular-nums">
                     {formatCurrency(preco.div(100).toNumber())}
                   </td>
-                  <td className="px-4 py-3 text-right text-lime-800 tabular-nums">
+                  <td className="px-4 py-3 text-right dark:text-lime-400 text-lime-800 tabular-nums">
                     {formatCurrency(vendas.div(100).toNumber())}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      <Button size="icon" variant="outline">
+                      <Button onClick={() => editProduto(produto)} size="icon" variant="outline">
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button size="icon" variant="destructive">

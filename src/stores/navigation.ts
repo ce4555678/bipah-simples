@@ -6,6 +6,7 @@ export type View =
   | "clientes"
   | "financeiro"
   | "configuracoes"
+  | "edit-produto"
 
 interface NavigationStore {
   currentView: View

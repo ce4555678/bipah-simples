@@ -1,6 +1,5 @@
-use image::imageops::FilterType;
-use webp::Encoder;
 use tauri_plugin_sql::{Migration, MigrationKind};
+mod commands;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -31,39 +30,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![compress_image])
+        .invoke_handler(tauri::generate_handler![commands::compress_image])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn compress_image(
-    image: Vec<u8>,
-) -> Result<Vec<u8>, String> {
-
-    let img =
-        image::load_from_memory(&image)
-            .map_err(|e| e.to_string())?;
-
-    let resized =
-        img.resize_exact(
-            300,
-            300,
-            FilterType::Lanczos3,
-        );
-
-    let rgba =
-        resized.to_rgba8();
-
-    let encoder =
-        Encoder::from_rgba(
-            rgba.as_raw(),
-            resized.width(),
-            resized.height(),
-        );
-
-    let webp =
-        encoder.encode(75.0);
-
-    Ok(webp.to_vec())
 }

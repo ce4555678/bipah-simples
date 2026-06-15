@@ -38,7 +38,7 @@ const fetchProdutos = async ({ pageParam = 1, searchTerm = "" }) => {
     .innerJoin(produtosFtsTable, eq(produtosTable.id, produtosFtsTable.rowid))
     // Left Join garante que produtos sem nenhuma venda ainda apareçam na listagem (com total 0 ou null)
     .leftJoin(ItemVendaTable, eq(produtosTable.id, ItemVendaTable.produtoId))
-    .where(and(...filters))
+    .where(and(...filters, eq(produtosTable.active, true)))
     // Sempre que usamos funções agregadas (sum, count, etc), precisamos agrupar pelos campos do select
     .groupBy(produtosTable.id)
     .orderBy(desc(sum(ItemVendaTable.amount)))

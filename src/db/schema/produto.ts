@@ -21,3 +21,4 @@ export const produtosRelations = relations(produtosTable, ({ many }) => ({
 }))
 
 export type Produto = typeof produtosTable.$inferSelect
+export type ProdutoInsert = typeof produtosTable.$inferInsert
