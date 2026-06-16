@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Search } from "lucide-react"
 import debounce from "lodash/debounce"
+import { useNavigationStore } from "@/stores/navigation"
 
 interface ProdutosToolbarProps {
   search: string
@@ -13,6 +14,7 @@ export function ProdutosToolbar({
   search,
   onSearchChange,
 }: ProdutosToolbarProps) {
+  const { setView } = useNavigationStore()
   const inputSearch = useMemo(
     () =>
       debounce((value: string) => {
@@ -48,7 +50,7 @@ export function ProdutosToolbar({
           />
         </div>
 
-        <Button className="gap-2">
+        <Button onClick={() => setView("new-produto")} className="gap-2">
           <Plus className="h-4 w-4" />
           Novo produto
         </Button>

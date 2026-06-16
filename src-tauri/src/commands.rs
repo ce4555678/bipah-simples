@@ -28,7 +28,7 @@ pub fn compress_image(
         );
 
     let webp =
-        encoder.encode(75.0);
+        encoder.encode(70.0);
 
     Ok(webp.to_vec())
 }

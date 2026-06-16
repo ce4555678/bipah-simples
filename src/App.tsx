@@ -9,6 +9,7 @@ import { useNavigationStore } from "./stores/navigation"
 import { lazy, Suspense } from "react"
 import PageLoading from "./components/loading"
 import { ThemeToggle } from "./components/theme-toggle"
+import { Toaster } from "./components/ui/sonner"
 
 const Pdv = lazy(() => import("@/components/pdvUi/pdv"))
 const Produtos = lazy(() => import("@/components/produtosUi/produtos"))
@@ -18,6 +19,7 @@ const Configuracoes = lazy(
 )
 const Clientes = lazy(() => import("@/components/clientesUi/clientes"))
 const ProdutosEdit = lazy(() => import("@/components/produtosUi/produtos-edit"))
+const ProdutosNew = lazy(() => import("@/components/produtosUi/produtos-new"))
 
 export default function App() {
   const { currentView } = useNavigationStore()
@@ -53,8 +55,10 @@ export default function App() {
           {currentView === "financeiro" && <Financeiro />}
           {currentView === "configuracoes" && <Configuracoes />}
           {currentView === "edit-produto" && <ProdutosEdit />}
+          {currentView === "new-produto" && <ProdutosNew />}
         </Suspense>
       </SidebarInset>
+      <Toaster richColors />
     </SidebarProvider>
   )
 }

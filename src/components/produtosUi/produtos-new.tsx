@@ -20,13 +20,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { useEditProdutoStore } from "@/stores/edit-produto"
 import Decimal from "decimal.js"
 import { useNavigationStore } from "@/stores/navigation"
 import { ChevronLeftIcon, SaveIcon } from "lucide-react"
 import { db } from "@/db"
 import { produtosTable } from "@/db/schema/produto"
-import { eq } from "drizzle-orm"
 
 const formatarReal = (valorCru: string | number): string => {
   const valorString = typeof valorCru === "number" ? String(valorCru) : valorCru
@@ -48,9 +46,9 @@ const parseCurrencyToCents = (display: string): number | undefined => {
 }
 
 const produtoSchema = z.object({
-  description: z.string().min(1, "A descrição é obrigatória"),
+  description: z.string("A descrição é obrigatória").min(1, "A descrição é obrigatória"),
   sku: z
-    .string()
+    .string("A descrição é obrigatória")
     .min(1, "O SKU é obrigatório")
     .max(20, "código de barras muito grande"),
   precoCusto: z.number().int().min(0).optional(),
@@ -58,22 +56,13 @@ const produtoSchema = z.object({
   markup: z.number().int().min(0).max(999).nullable().optional(),
 })
 
-export default function ProdutosEdit() {
+export default function ProdutosNew() {
   const { setView } = useNavigationStore()
-  const { produto, clearEditProduto } = useEditProdutoStore()
   const form = useForm<z.infer<typeof produtoSchema>>({
-    resolver: zodResolver(produtoSchema),
-    defaultValues: {
-      description: produto?.description,
-      markup: produto?.markup,
-      sku: produto?.sku,
-      precoCusto: produto?.precoCusto,
-      precoVenda: produto?.precoVenda,
-    },
+    resolver: zodResolver(produtoSchema)
   })
 
   function backProdutos() {
-    clearEditProduto()
     setView("produtos")
   }
 
@@ -106,18 +95,17 @@ export default function ProdutosEdit() {
   async function onSubmit(data: z.infer<typeof produtoSchema>) {
     try {
       await db
-        .update(produtosTable)
-        .set({
+        .insert(produtosTable)
+        .values({
           ...data,
         })
-        .where(eq(produtosTable.id, produto?.id || 0))
 
-      toast.success("Produto alterado com sucesso")
+      toast.success("Produto adicionado com sucesso")
       backProdutos()
     } catch (error) {
       console.error(error)
 
-      toast.error("Ocorreu um erro ao editar produto")
+      toast.error("Ocorreu um erro ao adicionar produto")
     }
   }
 
@@ -125,25 +113,25 @@ export default function ProdutosEdit() {
     <div className="mb-8 flex w-full items-center justify-center">
       <Card className="w-full sm:max-w-md">
         <CardHeader>
-          <CardTitle>Edição de produto</CardTitle>
+          <CardTitle>Novo produto</CardTitle>
           <CardDescription>
-            Atualize as informações do produto cadastrado.
+            Cadastre um novo produto.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form id="form-edit-produto" onSubmit={form.handleSubmit(onSubmit)}>
+          <form id="form-new-produto" onSubmit={form.handleSubmit(onSubmit)}>
             <FieldGroup>
               <Controller
                 name="description"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-edit-produto-description">
+                    <FieldLabel htmlFor="form-new-produto-description">
                       Descrição
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="form-edit-produto-description"
+                      id="form-new-produto-description"
                       aria-invalid={fieldState.invalid}
                       placeholder="Descrição do produto"
                       autoComplete="off"
@@ -159,10 +147,10 @@ export default function ProdutosEdit() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-edit-produto-sku">SKU</FieldLabel>
+                    <FieldLabel htmlFor="form-new-produto-sku">SKU</FieldLabel>
                     <Input
                       {...field}
-                      id="form-edit-produto-sku"
+                      id="form-new-produto-sku"
                       aria-invalid={fieldState.invalid}
                       placeholder="Codigo de barras"
                       autoComplete="off"
@@ -183,12 +171,12 @@ export default function ProdutosEdit() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-edit-produto-venda">
+                    <FieldLabel htmlFor="form-new-produto-venda">
                       Preço de venda
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="form-edit-produto-venda"
+                      id="form-new-produto-venda"
                       aria-invalid={fieldState.invalid}
                       placeholder="R$ 0,00"
                       autoComplete="off"
@@ -213,12 +201,12 @@ export default function ProdutosEdit() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-edit-produto-custo">
+                    <FieldLabel htmlFor="form-new-produto-custo">
                       Preço de custo
                     </FieldLabel>
                     <Input
                       {...field}
-                      id="form-edit-produto-custo"
+                      id="form-new-produto-custo"
                       aria-invalid={fieldState.invalid}
                       placeholder="R$ 0,00"
                       autoComplete="off"
@@ -250,7 +238,7 @@ export default function ProdutosEdit() {
             <Button type="button" variant="outline" onClick={backProdutos}>
               <ChevronLeftIcon /> Voltar
             </Button>
-            <Button type="submit" form="form-edit-produto">
+            <Button type="submit" form="form-new-produto">
               <SaveIcon /> Salvar
             </Button>
           </Field>
