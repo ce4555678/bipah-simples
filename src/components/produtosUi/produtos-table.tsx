@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useSearchStore } from "@/stores/search"
 import fetchProdutos from "@/utils/fetchProdutos"
 import { useInfiniteQuery } from "@tanstack/react-query"
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil,  } from "lucide-react"
 import { useEffect, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import { Spinner } from "../ui/spinner"
@@ -11,6 +11,7 @@ import Decimal from "decimal.js"
 import { useEditProdutoStore } from "@/stores/edit-produto"
 import { useNavigationStore } from "@/stores/navigation"
 import type { ProdutoInsert } from "@/db/schema/produto"
+import { DeleteProdutoDialog } from "./produtos-delete"
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", {
     style: "currency",
@@ -112,9 +113,7 @@ export function ProdutosTable() {
                       <Button onClick={() => editProduto(produto)} size="icon" variant="outline">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DeleteProdutoDialog id={produto.id} productName={produto.description}/>
                     </div>
                   </td>
                 </tr>

@@ -97,7 +97,7 @@ export default function ProdutosEdit() {
       .toDecimalPlaces(0)
       .toNumber()
 
-    form.setValue("markup", markup, {
+    form.setValue("markup", markup < 0 ? 0 : markup, {
       shouldDirty: true,
       shouldValidate: true,
     })
