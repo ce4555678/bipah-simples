@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'build', 'src-tauri/target', '**/target']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -14,6 +14,11 @@ export default defineConfig([
       tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
+    ],
+    ignores: [
+      "src-tauri/target/**",
+      "build/**",
+      "**/target/**",
     ],
     languageOptions: {
       globals: globals.browser,

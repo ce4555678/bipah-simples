@@ -1,9 +1,10 @@
-import { useMemo } from "react"
+import { useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, XIcon } from "lucide-react"
 import debounce from "lodash/debounce"
 import { useNavigationStore } from "@/stores/navigation"
+import { cn } from "@/lib/utils"
 
 interface ProdutosToolbarProps {
   search: string
@@ -15,6 +16,7 @@ export function ProdutosToolbar({
   onSearchChange,
 }: ProdutosToolbarProps) {
   const { setView } = useNavigationStore()
+  const ref = useRef<HTMLInputElement>(null)
   const inputSearch = useMemo(
     () =>
       debounce((value: string) => {
@@ -22,6 +24,12 @@ export function ProdutosToolbar({
       }, 300),
     [onSearchChange]
   )
+
+  function cleanInput() {
+    onSearchChange("")
+    inputSearch.cancel()
+    ref.current?.focus()
+  }
 
   return (
     <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card px-6 py-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -47,7 +55,17 @@ export function ProdutosToolbar({
             onChange={(e) => inputSearch(e.target.value)}
             placeholder="Buscar produto..."
             className="pr-3 pl-10"
+            ref={ref}
           />
+          <button
+            onClick={cleanInput}
+            className={cn(
+              "absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground",
+              search.trim() == "" && "hidden"
+            )}
+          >
+            <XIcon className="size-4" />
+          </button>
         </div>
 
         <Button onClick={() => setView("new-produto")} className="gap-2">

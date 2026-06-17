@@ -1,6 +1,6 @@
 import * as React from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, useWatch, Controller } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
@@ -66,8 +66,9 @@ export default function ProdutosNew() {
     setView("produtos")
   }
 
-  const precoVenda = form.watch("precoVenda")
-  const precoCusto = form.watch("precoCusto")
+  const precoVenda = useWatch({ control: form.control, name: "precoVenda" })
+  const precoCusto = useWatch({ control: form.control, name: "precoCusto" })
+  const markup = useWatch({ control: form.control, name: "markup" })
 
   React.useEffect(() => {
     if (precoVenda == null || precoCusto == null || precoCusto <= 0) {
@@ -226,8 +227,8 @@ export default function ProdutosNew() {
                 )}
               />
               <FieldDescription>
-                {form.watch("markup") != null
-                  ? `${form.watch("markup")}%`
+                {markup != null
+                  ? `${markup}%`
                   : "Markup calculado automaticamente"}
               </FieldDescription>
             </FieldGroup>

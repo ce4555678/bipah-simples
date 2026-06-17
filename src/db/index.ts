@@ -1,10 +1,14 @@
 import { drizzle } from "drizzle-orm/sqlite-proxy"
 import Database from "@tauri-apps/plugin-sql"
 
-const sqlite =
-  await Database.load(
-    "sqlite:bipahsimples.db"
-  )
+let sqlite: Awaited<ReturnType<typeof Database.load>> | null = null
+
+async function getSqlite() {
+  if (!sqlite) {
+    sqlite = await Database.load("sqlite:bipahsimples.db")
+  }
+  return sqlite
+}
 
 export const db = drizzle(
   async (
@@ -12,18 +16,12 @@ export const db = drizzle(
     params,
     method
   ) => {
-    const query =
-      sql
-        .trimStart()
-        .toLowerCase()
+    const sqliteInstance = await getSqlite()
+    const query = sql.trimStart().toLowerCase()
 
-    if (
-      query.startsWith(
-        "select"
-      )
-    ) {
+    if (query.startsWith("select")) {
       const rows =
-        (await sqlite.select(
+        (await sqliteInstance.select(
           sql,
           params
         )) as Record<
@@ -48,7 +46,7 @@ export const db = drizzle(
       }
     }
 
-    await sqlite.execute(
+    await sqliteInstance.execute(
       sql,
       params
     )
