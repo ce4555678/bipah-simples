@@ -27,6 +27,7 @@ import { ChevronLeftIcon, SaveIcon } from "lucide-react"
 import { db } from "@/db"
 import { produtosTable } from "@/db/schema/produto"
 import { eq } from "drizzle-orm"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 const formatarReal = (valorCru: string | number): string => {
   const valorString = typeof valorCru === "number" ? String(valorCru) : valorCru
@@ -59,6 +60,7 @@ const produtoSchema = z.object({
 })
 
 export default function ProdutosEdit() {
+  const queryClient = useQueryClient()
   const { setView } = useNavigationStore()
   const { produto, clearEditProduto } = useEditProdutoStore()
   const form = useForm<z.infer<typeof produtoSchema>>({
@@ -104,22 +106,30 @@ export default function ProdutosEdit() {
     })
   }, [precoVenda, precoCusto, form])
 
-  async function onSubmit(data: z.infer<typeof produtoSchema>) {
-    try {
+  const editProduct = useMutation({
+    mutationFn: async (data: z.infer<typeof produtoSchema>) => {
       await db
         .update(produtosTable)
         .set({
           ...data,
         })
         .where(eq(produtosTable.id, produto?.id || 0))
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["produtos"],
+      })
 
       toast.success("Produto alterado com sucesso")
-      backProdutos()
-    } catch (error) {
-      console.error(error)
+    },
 
+    onError: () => {
       toast.error("Ocorreu um erro ao editar produto")
-    }
+    },
+  })
+  async function onSubmit(data: z.infer<typeof produtoSchema>) {
+    editProduct.mutate(data)
+    backProdutos()
   }
 
   return (

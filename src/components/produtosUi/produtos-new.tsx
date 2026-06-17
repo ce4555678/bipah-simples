@@ -25,6 +25,8 @@ import { useNavigationStore } from "@/stores/navigation"
 import { ChevronLeftIcon, SaveIcon } from "lucide-react"
 import { db } from "@/db"
 import { produtosTable } from "@/db/schema/produto"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { eq } from "drizzle-orm"
 
 const formatarReal = (valorCru: string | number): string => {
   const valorString = typeof valorCru === "number" ? String(valorCru) : valorCru
@@ -46,7 +48,9 @@ const parseCurrencyToCents = (display: string): number | undefined => {
 }
 
 const produtoSchema = z.object({
-  description: z.string("A descrição é obrigatória").min(1, "A descrição é obrigatória"),
+  description: z
+    .string("A descrição é obrigatória")
+    .min(1, "A descrição é obrigatória"),
   sku: z
     .string("A descrição é obrigatória")
     .min(1, "O SKU é obrigatório")
@@ -58,8 +62,9 @@ const produtoSchema = z.object({
 
 export default function ProdutosNew() {
   const { setView } = useNavigationStore()
+  const queryClient = useQueryClient()
   const form = useForm<z.infer<typeof produtoSchema>>({
-    resolver: zodResolver(produtoSchema)
+    resolver: zodResolver(produtoSchema),
   })
 
   function backProdutos() {
@@ -93,21 +98,28 @@ export default function ProdutosNew() {
     })
   }, [precoVenda, precoCusto, form])
 
-  async function onSubmit(data: z.infer<typeof produtoSchema>) {
-    try {
-      await db
-        .insert(produtosTable)
-        .values({
-          ...data,
-        })
+  const addProduct = useMutation({
+    mutationFn: async (data: z.infer<typeof produtoSchema>) => {
+      await db.insert(produtosTable).values({
+        ...data,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["produtos"],
+      })
 
-      toast.success("Produto adicionado com sucesso")
-      backProdutos()
-    } catch (error) {
-      console.error(error)
+      toast.success("Produto adicionado")
+    },
 
-      toast.error("Ocorreu um erro ao adicionar produto")
-    }
+    onError: () => {
+      toast.error("Erro ao adicionar produto")
+    },
+  })
+
+  function onSubmit(data: z.infer<typeof produtoSchema>) {
+    addProduct.mutate(data)
+    backProdutos()
   }
 
   return (
@@ -115,9 +127,7 @@ export default function ProdutosNew() {
       <Card className="w-full sm:max-w-md">
         <CardHeader>
           <CardTitle>Novo produto</CardTitle>
-          <CardDescription>
-            Cadastre um novo produto.
-          </CardDescription>
+          <CardDescription>Cadastre um novo produto.</CardDescription>
         </CardHeader>
         <CardContent>
           <form id="form-new-produto" onSubmit={form.handleSubmit(onSubmit)}>

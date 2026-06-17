@@ -6,7 +6,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { useNavigationStore } from "./stores/navigation"
-import { lazy, Suspense } from "react"
+import { lazy, memo, Suspense } from "react"
 import PageLoading from "./components/loading"
 import { ThemeToggle } from "./components/theme-toggle"
 import { Toaster } from "./components/ui/sonner"
@@ -21,7 +21,7 @@ const Clientes = lazy(() => import("@/components/clientesUi/clientes"))
 const ProdutosEdit = lazy(() => import("@/components/produtosUi/produtos-edit"))
 const ProdutosNew = lazy(() => import("@/components/produtosUi/produtos-new"))
 
-export default function App() {
+ function App() {
   const { currentView } = useNavigationStore()
   return (
     <SidebarProvider>
@@ -62,3 +62,5 @@ export default function App() {
     </SidebarProvider>
   )
 }
+
+export default memo(App)

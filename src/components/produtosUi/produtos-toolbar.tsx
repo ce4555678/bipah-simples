@@ -1,33 +1,32 @@
-import { useMemo, useRef } from "react"
+import { memo, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Search, XIcon } from "lucide-react"
 import debounce from "lodash/debounce"
 import { useNavigationStore } from "@/stores/navigation"
 import { cn } from "@/lib/utils"
+import { useSearchStore } from "@/stores/search"
 
-interface ProdutosToolbarProps {
-  search: string
-  onSearchChange: (value: string) => void
-}
-
-export function ProdutosToolbar({
-  search,
-  onSearchChange,
-}: ProdutosToolbarProps) {
+function ProdutosToolbar() {
   const { setView } = useNavigationStore()
   const ref = useRef<HTMLInputElement>(null)
-  const inputSearch = useMemo(
-    () =>
-      debounce((value: string) => {
-        onSearchChange(value)
-      }, 300),
-    [onSearchChange]
-  )
+  const { input, setSearch } = useSearchStore()
+
+  const debouncedSearch = useRef(
+    debounce((value: string) => {
+      setSearch(value) // ← só atualiza o store após 300ms
+    }, 300)
+  ).current
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setSearch(e.target.value) // ← imediato, sem lag
+    debouncedSearch(e.target.value) // ← debounced pro store
+  }
 
   function cleanInput() {
-    onSearchChange("")
-    inputSearch.cancel()
+    debouncedSearch.cancel()
+    setSearch("")
+    setSearch("")
     ref.current?.focus()
   }
 
@@ -51,8 +50,8 @@ export function ProdutosToolbar({
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
           <Input
-            defaultValue={search}
-            onChange={(e) => inputSearch(e.target.value)}
+            value={input} // ← controlado pelo estado local
+            onChange={handleChange}
             placeholder="Buscar produto..."
             className="pr-3 pl-10"
             ref={ref}
@@ -61,7 +60,7 @@ export function ProdutosToolbar({
             onClick={cleanInput}
             className={cn(
               "absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-muted-foreground",
-              search.trim() == "" && "hidden"
+              input.trim() == "" && "hidden"
             )}
           >
             <XIcon className="size-4" />
@@ -76,3 +75,5 @@ export function ProdutosToolbar({
     </div>
   )
 }
+
+export default memo(ProdutosToolbar)
