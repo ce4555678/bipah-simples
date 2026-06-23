@@ -5,7 +5,7 @@ interface SearchStore {
   setSearch: (input: string) => void
 }
 
-export const useSearchStore = create<SearchStore>((set) => ({
+export const useSearchProdutoStore = create<SearchStore>((set) => ({
   input: "",
 
   setSearch: (input) =>

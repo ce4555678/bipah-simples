@@ -1,16 +1,17 @@
-import { memo, useMemo, useRef } from "react"
+import { memo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Search, XIcon } from "lucide-react"
 import debounce from "lodash/debounce"
 import { useNavigationStore } from "@/stores/navigation"
 import { cn } from "@/lib/utils"
-import { useSearchStore } from "@/stores/search"
+import { useSearchProdutoStore } from "@/stores/search-produto"
 
 function ProdutosToolbar() {
   const { setView } = useNavigationStore()
   const ref = useRef<HTMLInputElement>(null)
-  const { input, setSearch } = useSearchStore()
+  const { input, setSearch } = useSearchProdutoStore()
+  const [value, setValue] = useState("")
 
   const debouncedSearch = useRef(
     debounce((value: string) => {
@@ -19,8 +20,10 @@ function ProdutosToolbar() {
   ).current
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearch(e.target.value) // ← imediato, sem lag
-    debouncedSearch(e.target.value) // ← debounced pro store
+    const next = e.target.value
+
+    setValue(next) // atualiza instantaneamente
+    debouncedSearch(next) // busca com atraso
   }
 
   function cleanInput() {
@@ -50,7 +53,7 @@ function ProdutosToolbar() {
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
           <Input
-            value={input} // ← controlado pelo estado local
+            value={value} // ← controlado pelo estado local
             onChange={handleChange}
             placeholder="Buscar produto..."
             className="pr-3 pl-10"

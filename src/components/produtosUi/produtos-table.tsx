@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useSearchStore } from "@/stores/search"
+import { useSearchProdutoStore } from "@/stores/search-produto"
 import fetchProdutos from "@/utils/fetchProdutos"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
-import { Activity, useEffect, useMemo } from "react"
+import { Activity, memo, useEffect, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import { Spinner } from "../ui/spinner"
 import Decimal from "decimal.js"
@@ -18,8 +18,8 @@ const formatCurrency = (value: number) =>
     currency: "BRL",
   })
 
-export function ProdutosTable() {
-  const search = useSearchStore()
+function ProdutosTable() {
+  const search = useSearchProdutoStore()
   const { setView } = useNavigationStore()
   const { setEditProduto } = useEditProdutoStore()
 
@@ -56,9 +56,10 @@ export function ProdutosTable() {
 
   const produtos = useMemo(() => {
     const all = data?.pages.flatMap((page) => page.produtos) ?? []
-    return Array.from(new Map(all.map((p) => [p.id, p])).values())
+    // Filter out any entries where the client is null/undefined
+    const validProdutos = all.filter((p) => p && p.id)
+    return Array.from(new Map(validProdutos.map((p) => [p.id, p])).values())
   }, [data])
-
   if (status === "pending") {
     return (
       <div className="flex h-full items-center justify-center">
@@ -73,16 +74,18 @@ export function ProdutosTable() {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-3xl border bg-card">
-<Activity mode={produtos.length === 0 ? "hidden" : "visible"}>
-  <div className="flex items-center justify-center gap-1.5 py-2">
-    <span className="text-sm font-semibold tabular-nums text-foreground">
-      {totalProdutos}
-    </span>
-    <span className="text-sm text-muted-foreground">
-      {totalProdutos === 1 ? "produto cadastrado" : "produtos cadastrados"}
-    </span>
-  </div>
-</Activity>
+      <Activity mode={produtos.length === 0 ? "hidden" : "visible"}>
+        <div className="flex items-center justify-center gap-1.5 py-2">
+          <span className="text-sm font-semibold text-foreground tabular-nums">
+            {totalProdutos}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {totalProdutos === 1
+              ? "produto cadastrado"
+              : "produtos cadastrados"}
+          </span>
+        </div>
+      </Activity>
       <ScrollArea className="min-h-0 flex-1">
         <table className="w-full table-fixed">
           <thead className="sticky top-0 z-10 border-b bg-white dark:bg-background">
@@ -160,3 +163,5 @@ export function ProdutosTable() {
     </div>
   )
 }
+
+export default memo(ProdutosTable)

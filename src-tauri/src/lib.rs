@@ -1,5 +1,4 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
-mod commands;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -30,7 +29,6 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![commands::compress_image])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

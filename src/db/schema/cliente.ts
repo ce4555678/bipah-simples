@@ -13,3 +13,6 @@ export const clientesTable = sqliteTable("clientes_table", {
 export const clientesRelations = relations(clientesTable, ({ many }) => ({
   compras: many(vendasTable),
 }))
+
+export type Client = typeof clientesTable.$inferSelect
+export type ClientInsert = typeof clientesTable.$inferInsert

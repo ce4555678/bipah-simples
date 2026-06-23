@@ -12,58 +12,45 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/db";
-import { produtosTable } from "@/db/schema/produto";
-import { eq } from "drizzle-orm";
-import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { db } from "@/db"
+import { produtosTable } from "@/db/schema/produto"
+import { eq } from "drizzle-orm"
+import { toast } from "sonner"
 
 interface DeleteProdutoDialogProps {
-  productName: string;
+  productName: string
   id: number
 }
 
-export function DeleteProdutoDialog({ productName, id }: DeleteProdutoDialogProps) {
+export function DeleteProdutoDialog({
+  productName,
+  id,
+}: DeleteProdutoDialogProps) {
   const queryClient = useQueryClient()
 
-  const  deleteProduct = 
-    useMutation({
-    mutationFn: async (
-      id: number
-    ) => {
+  const deleteProduct = useMutation({
+    mutationFn: async (id: number) => {
       await db
-        .update(
-          produtosTable
-        )
+        .update(produtosTable)
         .set({
           active: false,
         })
-        .where(
-          eq(
-            produtosTable.id,
-            id
-          )
-        )
+        .where(eq(produtosTable.id, id))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [
-          "produtos",
-        ],
+        queryKey: ["produtos"],
       })
 
-      toast.success(
-        "Produto excluído"
-      )
+      toast.success("Produto excluído")
     },
 
     onError: () => {
-      toast.error(
-        "Erro ao excluir"
-      )
+      toast.error("Erro ao excluir")
     },
   })
-  
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -80,13 +67,13 @@ export function DeleteProdutoDialog({ productName, id }: DeleteProdutoDialogProp
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter >
+        <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancelar</Button>
           </DialogClose>
           <Button
             variant="destructive"
-             onClick={() => deleteProduct.mutate(id)}
+            onClick={() => deleteProduct.mutate(id)}
           >
             Confirmar Exclusão
           </Button>

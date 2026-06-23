@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -22,7 +23,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { db } from "@/db"
-import { clientesTable } from "@/db/schema/cliente"
+import { clientesTable, type Client } from "@/db/schema/cliente"
+import { eq } from "drizzle-orm"
 
 const optionalString = z
   .string()
@@ -39,47 +41,79 @@ const clienteSchema = z.object({
 
 type ClienteFormValues = z.infer<typeof clienteSchema>
 
-interface ClientesDialogProps {
+interface ClientesEditDialogProps {
+  client: Client | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function ClientesDialog({ open, onOpenChange }: ClientesDialogProps) {
+export function ClientesEditDialog({
+  client,
+  open,
+  onOpenChange,
+}: ClientesEditDialogProps) {
   const queryClient = useQueryClient()
+
   const form = useForm<ClienteFormValues>({
     resolver: zodResolver(clienteSchema),
     defaultValues: {
-      document: "",
-      name: "",
-      phone: "",
-      address: "",
+      document: client?.document ?? "",
+      name: client?.name ?? "",
+      phone: client?.phone ?? "",
+      address: client?.address ?? "",
     },
   })
 
-  const createClient = useMutation({
+  useEffect(() => {
+    if (!client) return
+
+    form.reset({
+      document: client.document ?? "",
+      name: client.name ?? "",
+      phone: client.phone ?? "",
+      address: client.address ?? "",
+    })
+  }, [client, form])
+
+  const editCliente = useMutation({
     mutationFn: async (data: ClienteFormValues) => {
-      await db.insert(clientesTable).values(data)
+      if (!client) {
+        throw new Error("Cliente não encontrado")
+      }
+
+      await db
+        .update(clientesTable)
+        .set({
+          document: data.document,
+          name: data.name,
+          phone: data.phone,
+          address: data.address,
+        })
+        .where(eq(clientesTable.id, client.id))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clientes"] })
-      toast.success("Cliente criado")
-      form.reset()
+      toast.success("Cliente atualizado")
       onOpenChange(false)
     },
     onError: () => {
-      toast.error("Erro ao criar cliente")
+      toast.error("Erro ao atualizar cliente")
     },
   })
 
   function onSubmit(values: ClienteFormValues) {
-    createClient.mutate(values)
+    editCliente.mutate(values)
+  }
+
+  if (!client) {
+    return null
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Novo cliente</DialogTitle>
+          <DialogTitle>Editar cliente</DialogTitle>
         </DialogHeader>
 
         <form
@@ -92,10 +126,12 @@ export function ClientesDialog({ open, onOpenChange }: ClientesDialogProps) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="cliente-document">Documento</FieldLabel>
+                  <FieldLabel htmlFor="cliente-edit-document">
+                    Documento
+                  </FieldLabel>
                   <Input
                     {...field}
-                    id="cliente-document"
+                    id="cliente-edit-document"
                     placeholder="CPF / CNPJ"
                     autoComplete="off"
                   />
@@ -111,10 +147,10 @@ export function ClientesDialog({ open, onOpenChange }: ClientesDialogProps) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="cliente-name">Nome</FieldLabel>
+                  <FieldLabel htmlFor="cliente-edit-name">Nome</FieldLabel>
                   <Input
                     {...field}
-                    id="cliente-name"
+                    id="cliente-edit-name"
                     placeholder="Nome do cliente"
                     autoComplete="off"
                   />
@@ -130,10 +166,10 @@ export function ClientesDialog({ open, onOpenChange }: ClientesDialogProps) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="cliente-phone">Telefone</FieldLabel>
+                  <FieldLabel htmlFor="cliente-edit-phone">Telefone</FieldLabel>
                   <Input
                     {...field}
-                    id="cliente-phone"
+                    id="cliente-edit-phone"
                     placeholder="(00) 00000-0000"
                     autoComplete="off"
                   />
@@ -149,10 +185,12 @@ export function ClientesDialog({ open, onOpenChange }: ClientesDialogProps) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="cliente-address">Endereço</FieldLabel>
+                  <FieldLabel htmlFor="cliente-edit-address">
+                    Endereço
+                  </FieldLabel>
                   <Input
                     {...field}
-                    id="cliente-address"
+                    id="cliente-edit-address"
                     placeholder="Rua, número, bairro"
                     autoComplete="off"
                   />
@@ -168,8 +206,10 @@ export function ClientesDialog({ open, onOpenChange }: ClientesDialogProps) {
             <DialogClose asChild>
               <Button variant="outline">Cancelar</Button>
             </DialogClose>
-            <Button type="submit" disabled={form.formState.isLoading}>
-              {form.formState.isLoading ? "Salvando..." : "Salvar cliente"}
+            <Button type="submit" disabled={editCliente.status === "pending"}>
+              {editCliente.status === "pending"
+                ? "Salvando..."
+                : "Salvar alterações"}
             </Button>
           </DialogFooter>
         </form>

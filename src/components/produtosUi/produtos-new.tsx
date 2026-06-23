@@ -22,11 +22,10 @@ import {
 import { Input } from "@/components/ui/input"
 import Decimal from "decimal.js"
 import { useNavigationStore } from "@/stores/navigation"
-import { ChevronLeftIcon, SaveIcon } from "lucide-react"
+import { ChevronLeftIcon, LoaderCircle, SaveIcon } from "lucide-react"
 import { db } from "@/db"
 import { produtosTable } from "@/db/schema/produto"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { eq } from "drizzle-orm"
 
 const formatarReal = (valorCru: string | number): string => {
   const valorString = typeof valorCru === "number" ? String(valorCru) : valorCru
@@ -60,7 +59,7 @@ const produtoSchema = z.object({
   markup: z.number().int().min(0).max(999).nullable().optional(),
 })
 
-export default function ProdutosNew() {
+function ProdutosNew() {
   const { setView } = useNavigationStore()
   const queryClient = useQueryClient()
   const form = useForm<z.infer<typeof produtoSchema>>({
@@ -249,8 +248,20 @@ export default function ProdutosNew() {
             <Button type="button" variant="outline" onClick={backProdutos}>
               <ChevronLeftIcon /> Voltar
             </Button>
-            <Button type="submit" form="form-new-produto">
-              <SaveIcon /> Salvar
+            <Button
+              type="submit"
+              form="form-new-produto"
+              disabled={form.formState.isLoading}
+            >
+              {form.formState.isLoading ? (
+                <>
+                  <LoaderCircle className="animate-spin" /> Salvando
+                </>
+              ) : (
+                <>
+                  <SaveIcon /> Salvar
+                </>
+              )}
             </Button>
           </Field>
         </CardFooter>
@@ -258,3 +269,5 @@ export default function ProdutosNew() {
     </div>
   )
 }
+
+export default React.memo(ProdutosNew)

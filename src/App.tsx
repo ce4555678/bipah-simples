@@ -21,7 +21,7 @@ const Clientes = lazy(() => import("@/components/clientesUi/clientes"))
 const ProdutosEdit = lazy(() => import("@/components/produtosUi/produtos-edit"))
 const ProdutosNew = lazy(() => import("@/components/produtosUi/produtos-new"))
 
- function App() {
+function App() {
   const { currentView } = useNavigationStore()
   return (
     <SidebarProvider>
