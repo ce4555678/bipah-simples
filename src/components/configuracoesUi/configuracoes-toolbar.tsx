@@ -1,7 +1,3 @@
-"use client"
-
-import { Button } from "@/components/ui/button"
-import { Settings2 } from "lucide-react"
 
 interface ConfiguracoesToolbarProps {
   title: string
@@ -25,9 +21,6 @@ export default function ConfiguracoesToolbar({
           {description}
         </p>
       </div>
-      <Button variant="outline" className="gap-2 self-start sm:self-auto">
-        <Settings2 className="h-4 w-4" /> Ajustes gerais
-      </Button>
     </div>
   )
 }

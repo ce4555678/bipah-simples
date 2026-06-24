@@ -1,10 +1,8 @@
-export type AppearanceMode = "light" | "dark" | "system"
-export type ReceiptLayout = "standard" | "compact"
-
 export interface ConfiguracoesValues {
-  terminalName: string
-  appearance: AppearanceMode
-  receiptLayout: ReceiptLayout
-  automaticCashClose: boolean
-  defaultPaymentMethod: string
+  name: string
+  terminal: string
+  cnpj: string
+  address: string
+  thermalPrinter: string
+  paperSize: string
 }

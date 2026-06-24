@@ -10,7 +10,7 @@ export const fluxoTable = sqliteTable(
     createdAt: int("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
-    type: text().$type<"sangria" | "suprimento">().notNull(),
+    type: text().$type<"entrada" | "saida">().notNull(),
     updatedAt: int("updated_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),

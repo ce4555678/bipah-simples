@@ -123,7 +123,7 @@ function ClientesTable() {
               <tr key={client.id} className="border-b hover:bg-muted/40">
                 <td className="px-4 py-3 font-medium">{client.document}</td>
 
-                <td className="truncate px-4 py-3" title={client.name}>
+                <td className="truncate px-4 py-3 capitalize" title={client.name}>
                   {client.name}
                 </td>
 

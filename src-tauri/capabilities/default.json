@@ -8,6 +8,9 @@
   "permissions": [
     "core:default",
     "sql:default",
-    "sql:allow-execute"
+    "sql:allow-execute",
+    "thermal-printer:allow-list-thermal-printers",
+    "thermal-printer:allow-print-thermal-printer",
+    "thermal-printer:allow-test-thermal-printer"
   ]
 }
